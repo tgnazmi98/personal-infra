@@ -1,0 +1,56 @@
+http:
+  middlewares:
+    proxy-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+
+    jenkins-buffering:
+      buffering:
+        maxRequestBodyBytes: 0
+        memRequestBodyBytes: 0
+        maxResponseBodyBytes: 0
+        memResponseBodyBytes: 0
+
+  serversTransports:
+    default-timeout:
+      forwardingTimeouts:
+        dialTimeout: "10s"
+        responseHeaderTimeout: "30s"
+        idleConnTimeout: "90s"
+
+    jenkins-timeout:
+      forwardingTimeouts:
+        dialTimeout: "10s"
+        responseHeaderTimeout: "90s"
+        idleConnTimeout: "180s"
+
+    websocket-long:
+      forwardingTimeouts:
+        dialTimeout: "30s"
+        responseHeaderTimeout: "0s"
+        idleConnTimeout: "86400s"
+
+  routers:
+    jenkins:
+      rule: "Host(`jenkins.opengrid.com.my`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+        - jenkins-buffering
+      service: jenkins
+
+    catch-all:
+      rule: "PathPrefix(`/`)"
+      priority: 1
+      entryPoints:
+        - web
+      service: noop@internal
+
+  services:
+    jenkins:
+      loadBalancer:
+        serversTransport: jenkins-timeout
+        servers:
+          - url: "http://host.docker.internal:8090"

@@ -1,0 +1,50 @@
+services:
+  traefik:
+    image: traefik:3.6.7
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command:
+      - "--configFile=/etc/traefik/traefik.yml"
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
+    networks:
+      home-monitoring:
+        aliases:
+          - nginx-proxy
+      usim-hyres:
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traefik-health.rule=Path(`/health`)"
+      - "traefik.http.routers.traefik-health.entrypoints=web"
+      - "traefik.http.routers.traefik-health.service=ping@internal"
+      - "traefik.http.routers.traefik-health.priority=100"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  cloudflared:
+    image: cloudflare/cloudflared:2026.1.2
+    command: tunnel --no-autoupdate --protocol http2 --edge-ip-version auto run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      traefik:
+        condition: service_healthy
+    networks:
+      - home-monitoring
+    restart: unless-stopped
+
+networks:
+  home-monitoring:
+    external: true
+  usim-hyres:
+    external: true

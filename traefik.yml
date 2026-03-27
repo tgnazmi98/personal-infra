@@ -21,6 +21,10 @@ providers:
     directory: /etc/traefik/dynamic
     watch: true
 
+metrics:
+  prometheus:
+    entryPoint: traefik
+
 ping:
   entryPoint: web
 

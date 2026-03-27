@@ -17,6 +17,7 @@ services:
         aliases:
           - nginx-proxy
       usim-hyres:
+      monitoring:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -47,4 +48,6 @@ networks:
   home-monitoring:
     external: true
   usim-hyres:
+    external: true
+  monitoring:
     external: true

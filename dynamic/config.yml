@@ -41,6 +41,14 @@ http:
         - jenkins-buffering
       service: jenkins
 
+    fault-monitoring:
+      rule: "Host(`aipv.opengrid.com.my`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+      service: fault-monitoring
+
     catch-all:
       rule: "PathPrefix(`/`)"
       priority: 1
@@ -54,3 +62,9 @@ http:
         serversTransport: jenkins-timeout
         servers:
           - url: "http://host.docker.internal:8090"
+
+    fault-monitoring:
+      loadBalancer:
+        serversTransport: default-timeout
+        servers:
+          - url: "http://fault-monitoring-frontend:80"

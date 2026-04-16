@@ -12,6 +12,11 @@ http:
         maxResponseBodyBytes: 0
         memResponseBodyBytes: 0
 
+    strip-api-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api"
+
   serversTransports:
     default-timeout:
       forwardingTimeouts:
@@ -49,6 +54,69 @@ http:
         - proxy-headers
       service: fault-monitoring
 
+    grafana:
+      rule: "Host(`grafana.opengrid.com.my`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+      service: grafana
+
+    hm-frontend:
+      rule: "Host(`demo.opengrid.com.my`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+      service: hm-frontend
+      priority: 1
+
+    hm-backend:
+      rule: "Host(`demo.opengrid.com.my`) && PathPrefix(`/api/`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+      service: hm-backend
+      priority: 10
+
+    hm-backend-ws:
+      rule: "Host(`demo.opengrid.com.my`) && PathPrefix(`/ws/`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+      service: hm-backend-ws
+      priority: 20
+
+    usim-frontend:
+      rule: "Host(`dev-hyres.opengrid.com.my`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+      service: usim-frontend
+      priority: 1
+
+    usim-backend:
+      rule: "Host(`dev-hyres.opengrid.com.my`) && PathPrefix(`/api/`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+        - strip-api-prefix
+      service: usim-backend
+      priority: 10
+
+    usim-backend-ws:
+      rule: "Host(`dev-hyres.opengrid.com.my`) && PathPrefix(`/ws/`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+      service: usim-backend-ws
+      priority: 20
+
     catch-all:
       rule: "PathPrefix(`/`)"
       priority: 1
@@ -68,3 +136,45 @@ http:
         serversTransport: default-timeout
         servers:
           - url: "http://fault-monitoring-frontend:80"
+
+    grafana:
+      loadBalancer:
+        serversTransport: default-timeout
+        servers:
+          - url: "http://grafana:3000"
+
+    hm-frontend:
+      loadBalancer:
+        serversTransport: default-timeout
+        servers:
+          - url: "http://frontend:3000"
+
+    hm-backend:
+      loadBalancer:
+        serversTransport: default-timeout
+        servers:
+          - url: "http://backend:8000"
+
+    hm-backend-ws:
+      loadBalancer:
+        serversTransport: websocket-long
+        servers:
+          - url: "http://backend:8000"
+
+    usim-frontend:
+      loadBalancer:
+        serversTransport: default-timeout
+        servers:
+          - url: "http://usim-hyres-frontend:80"
+
+    usim-backend:
+      loadBalancer:
+        serversTransport: default-timeout
+        servers:
+          - url: "http://usim-hyres-backend:8000"
+
+    usim-backend-ws:
+      loadBalancer:
+        serversTransport: websocket-long
+        servers:
+          - url: "http://usim-hyres-backend:8000"

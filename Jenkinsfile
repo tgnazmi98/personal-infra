@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        COMPOSE_FILE = '~/traefik/docker-compose.yml'
+        COMPOSE_FILE = '/opt/traefik/docker-compose.yml'
     }
 
     stages {

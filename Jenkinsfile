@@ -6,6 +6,12 @@ pipeline {
     }
 
     stages {
+        stage('Pull From Repo') {
+            steps {
+                sh "git pull origin main"
+            }
+        }
+
         stage('Deploy Traefik') {
             steps {
                 sh "docker compose -f ${COMPOSE_FILE} pull"

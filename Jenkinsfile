@@ -3,12 +3,15 @@ pipeline {
 
     environment {
         COMPOSE_FILE = '/opt/traefik/docker-compose.yml'
+        DEPLOY_DIR = '/opt/traefik'
     }
 
     stages {
         stage('Pull From Repo') {
             steps {
-                sh "git pull origin main"
+                dir("${DEPLOY_DIR}") {
+                    sh "git pull origin main"
+                }
             }
         }
 

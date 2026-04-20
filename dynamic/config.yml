@@ -12,6 +12,13 @@ http:
         maxResponseBodyBytes: 0
         memResponseBodyBytes: 0
 
+    harbor-buffering:
+      buffering:
+        maxRequestBodyBytes: 0
+        memRequestBodyBytes: 0
+        maxResponseBodyBytes: 0
+        memResponseBodyBytes: 0
+
     strip-api-prefix:
       stripPrefix:
         prefixes:
@@ -36,6 +43,12 @@ http:
         responseHeaderTimeout: "0s"
         idleConnTimeout: "86400s"
 
+    harbor-transport:
+      forwardingTimeouts:
+        dialTimeout: "10s"
+        responseHeaderTimeout: "0s"
+        idleConnTimeout: "600s"
+
   routers:
     jenkins:
       rule: "Host(`jenkins.opengrid.com.my`)"
@@ -45,6 +58,15 @@ http:
         - proxy-headers
         - jenkins-buffering
       service: jenkins
+
+    harbor:
+      rule: "Host(`registry.opengrid.com.my`)"
+      entryPoints:
+        - web
+      middlewares:
+        - proxy-headers
+        - harbor-buffering
+      service: harbor
 
     catch-all:
       rule: "PathPrefix(`/`)"
@@ -59,3 +81,9 @@ http:
         serversTransport: jenkins-timeout
         servers:
           - url: "http://host.docker.internal:8090"
+
+    harbor:
+      loadBalancer:
+        serversTransport: harbor-transport
+        servers:
+          - url: "http://nginx:8080"

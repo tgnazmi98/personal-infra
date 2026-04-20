@@ -19,6 +19,7 @@ services:
       usim-hyres:
       monitoring:
       fault-monitoring:
+      harbor-proxy:
     restart: unless-stopped
     labels:
       - "traefik.enable=true"
@@ -53,4 +54,6 @@ networks:
   monitoring:
     external: true
   fault-monitoring:
+    external: true
+  harbor-proxy:
     external: true
